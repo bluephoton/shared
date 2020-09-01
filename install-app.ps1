@@ -53,4 +53,5 @@ write-host "Installing app files complete"
 
 # Launch app and don't wait
 Set-Location -Path $appFolder
-Start-Process "cmd" -ArgumentList '/K "node app\"'
+#Start-Process "cmd" -ArgumentList '/K "node app\"'
+Start-Process node -ArgumentList app
