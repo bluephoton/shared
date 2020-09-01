@@ -7,22 +7,28 @@ $appFiles = "package.json", "package-lock.json", "app.js"
 $appFolder = "C:\app"
 $nodeMsi = "$($appFolder)\node.msi"
 
+$logFile = "$($appFolder)\log.txt"
+
+function Log([string]$Text) {
+    $Text | Out-File -Append -FilePath $logFile
+}
+
 
 function DownloadFile([string] $fileUrl, [string] $destination) {
-    "Downloading '$fileUrl' to '$destination' ..."
+    Log -Text "Downloading '$fileUrl' to '$destination' ..."
     try {
         $webClient = New-Object System.Net.WebClient
         $webClient.DownloadFile($fileUrl, $destination)
-        "Downloading complete"
+        Log -Text "Downloading complete"
     } catch {
-        "Download failed: $($_.Exception)"
+        Log -Text "Download failed: $($_.Exception)"
         throw $_
     }
 }
 
 # create app folder if it doesn't exist
 if(!(Test-Path -PathType Container -Path $appFolder)) {
-    "App folder not found, creating ..."
+    Log -Text "App folder not found, creating ..."
     New-Item -ItemType Directory -Path $appFolder | Out-Null
 }
 
@@ -30,28 +36,34 @@ if(!(Test-Path -PathType Container -Path $appFolder)) {
 $currentNodeVersion = ""
 if (Get-Command node -errorAction SilentlyContinue) {
     $currentNodeVersion = (node -v)
-    "Node installed. Version: $($currentNodeVersion)"
+    Log -Text "Node installed. Version: $($currentNodeVersion)"
 }
 
 if($nodeVersion -eq $currentNodeVersion) {
-    "Node already installed"
+    Log -Text "Node already installed"
 } else {
     # Download node
     DownloadFile -fileUrl $nodeDownloadUrl -destination $nodeMsi
 
     # Install node
-    "Installing node ..."
+    Log -Text "Installing node ..."
     $args = "/i", $nodeMsi, "/quiet", "/norestart"
     Start-Process "msiexec" -ArgumentList $args -Wait
-    "Installing node complete"
+    Log -Text "Installing node complete"
 }
 
 # install app files
-"Installing app files ..."
+Log -Text "Installing app files ..."
 $appFiles | % { DownloadFile -fileUrl "$($appFilesBareUrl)$($_)" -destination "$($appFolder)\$($_)" }
-"Installing app files complete"
+Log -Text "Installing app files complete"
 
 # Launch app and don't wait
+Log -Text "Changing to app folder"
 Set-Location -Path $appFolder
-#Start-Process "cmd" -ArgumentList '/K "node app\"'
-Start-Process node -ArgumentList app
+Log -Text "Starting app ..."
+try {
+    #Start-Process "cmd" -ArgumentList '/K "node app\"'
+    Start-Process node -ArgumentList app
+} catch {
+    Log -Text "$($_.Exception)"
+}
