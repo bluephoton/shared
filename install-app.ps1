@@ -1,6 +1,6 @@
 $nodeVersion = "v12.18.3"
 $nodeDownloadUrl = "https://nodejs.org/dist/v12.18.3/node-$($nodeVersion)-x64.msi"
-$appFilesBareUrl = "https://raw.githubusercontent.com/bluephoton/shared/master/"
+$appFilesBareUrl = "https://raw.githubusercontent.com/bluephoton/shared/master/app/"
 $appFiles = "package.json", "package-lock.json", "app.js"
   
 
