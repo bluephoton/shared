@@ -7,7 +7,7 @@ $appFiles = "package.json", "package-lock.json", "app.js"
 $appFolder = "C:\app"
 $nodeMsi = "$($appFolder)\node.msi"
 
-$logFile = "$($appFolder)\log.txt"
+$logFile = "$($appFolder)\app.log"
 
 function Log([string]$Text) {
     $Text | Out-File -Append -FilePath $logFile
@@ -62,8 +62,7 @@ Log -Text "Changing to app folder"
 Set-Location -Path $appFolder
 Log -Text "Starting app ..."
 try {
-    #Start-Process "cmd" -ArgumentList '/K "node app\"'
-    Start-Process node -ArgumentList app
+    Start-Process "C:\Program Files\nodejs\node.exe" -ArgumentList app
 } catch {
     Log -Text "$($_.Exception)"
 }
