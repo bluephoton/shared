@@ -1,5 +1,8 @@
 $nodeVersion = "v12.18.3"
-$nodeDownloadUri = "https://nodejs.org/dist/v12.18.3/node-$($nodeVersion)-x64.msi"
+$nodeDownloadUrl = "https://nodejs.org/dist/v12.18.3/node-$($nodeVersion)-x64.msi"
+$appFilesBareUrl = "https://raw.githubusercontent.com/bluephoton/shared/master/"
+$appFiles = "package.json", "package-lock.json", "app.js"
+  
 
 $appFolder = "C:\app"
 $nodeMsi = "$($appFolder)\node.msi"
@@ -24,6 +27,7 @@ if(!(Test-Path -PathType Container -Path $appFolder)) {
 }
 
 # Get current node version
+$currentNodeVersion = ""
 if (Get-Command node -errorAction SilentlyContinue) {
     $currentNodeVersion = (node -v)
     Write-Host "Node installed. Version: $($currentNodeVersion)"
@@ -31,14 +35,22 @@ if (Get-Command node -errorAction SilentlyContinue) {
 
 if($nodeVersion -eq $currentNodeVersion) {
     Write-Host "Node already installed"
-    return
+} else {
+    # Download node
+    DownloadFile -fileUrl $nodeDownloadUrl -destination $nodeMsi
+
+    # Install node
+    write-host "Installing node ..."
+    $args = "/i", $nodeMsi, "/quiet", "/norestart"
+    Start-Process "msiexec" -ArgumentList $args -Wait
+    write-host "Installing node complete"
 }
 
-# Download node
-DownloadFile -fileUrl $nodeDownloadUri -destination $nodeMsi
+# install app files
+write-host "Installing app files ..."
+$appFiles | % { DownloadFile -fileUrl "$($appFilesBareUrl)$($_)" -destination "$($appFolder)\$($_)" }
+write-host "Installing app files complete"
 
-# Install node
-write-host "Installing node ..."
-$args = "/i", $nodeMsi, "/quiet", "/norestart"
-Start-Process "msiexec" -ArgumentList $args -Wait
-write-host "Installing node complete"
+# Launch app and don't wait
+Set-Location -Path $appFolder
+Start-Process "cmd" -ArgumentList '/K "node app\"'
